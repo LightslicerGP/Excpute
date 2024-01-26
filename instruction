@@ -1,8 +1,8 @@
-LDI 3 64
+LDI 64 3
 CAL Done
 HLT
 
 Done:
-    LDI 2 64
+    LDI 64 2
     ADD 2 3 4
     RTN
