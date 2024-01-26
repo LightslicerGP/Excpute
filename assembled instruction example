@@ -1,0 +1,15 @@
+LDI 3 64 # without call and return
+INC 7 5 0 # register dest = 5, set flag = 0, data register = 7, i have to set the incremented value to another location or else it would jump automatically before i had pushed the incremented value
+PSH 5
+JMP 5
+HLT
+LDI 2 64
+ADD 2 3 4
+POP 7 # pops the incremented number into register 7, the instruction adress, then automatically jumps
+
+LDI 3 64 # with call and return
+CAL 3 # takes the current value in register 7, adds 1, then pushes
+HLT
+LDI 2 64
+ADD 2 3 4
+RTN # pops from stack to register 7
