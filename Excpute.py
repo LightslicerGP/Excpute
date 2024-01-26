@@ -1,3 +1,6 @@
+import RAM
+
+
 def reg_read(id: int, signed: bool = True):
     with open("Registers.bin", "rb") as f:
         value = f.read()[id]
@@ -28,13 +31,21 @@ def reg_write(id: int, new_data: int, signed: bool = True):
         file.write(data)
 
 
-stack_pointer = 0
-def push(data: int, signed: bool = True):
-    print("stack pointer is currently at:", stack_pointer)
-    byte_adress = -stack_pointer + 248
-    reg_write(byte_adress, data, signed)
-    stack_pointer = stack_pointer + 1
-    print("after push, the stack pointer is at:", stack_pointer)
+def flag_set(flag: str, sign: int):
+    flag_bits = {"carry": -1, "zero": -2, "parity": -3, "negative": -4}
+
+    if sign == 0 or sign == 1:
+        flag_byte = list(bin(reg_read(6, False))[2:].zfill(8))
+
+        if flag in flag_bits:
+            flag_byte[flag_bits[flag]] = str(sign)
+            updated_flag = int("".join(flag_byte), 2)
+            reg_write(6, updated_flag, False)
+        else:
+            raise ValueError("Flag must be carry, zero, parity, or negative")
+
+    else:
+        raise ValueError("flag_write number must be 1 or 0")
 
 
 with open("assembled instruction", "r") as file:
@@ -42,11 +53,17 @@ with open("assembled instruction", "r") as file:
         ([int(x) if x.isdigit() else x for x in line.split()]) for line in file
     ]
 
-reg_write(7, 0, False)
+# kinda unneccessary to have the first be false but whatever
+reg_write(7, 0, False)  # set instruction address
+reg_write(5, 248, False)  # set stack adress
 instruction_address = reg_read(7, False)
 
 while instruction_address in range(256):
-    instruction_line = instructions[instruction_address]
+    try:
+        instruction_line = instructions[instruction_address]
+    except IndexError:
+        print("Ran out of instructions, halted automatically")
+        exit()
 
     def next_instruction():
         if instruction_address == 255:
@@ -59,23 +76,34 @@ while instruction_address in range(256):
         next_instruction()
     elif instruction_line[0] == "HLT":
         print("Halt Operation")
-        raise ValueError("CPU Halted")
+        exit()
     elif instruction_line[0] == "ADD":
         print("Addition")
-        A = instruction_line[1]
-        B = instruction_line[2]
+        A = reg_read(instruction_line[1], True)
+        B = reg_read(instruction_line[2], True)
         Destination = instruction_line[3]
-        reg_write(Destination, A + B)
+        result = A + B
+        if -128 <= result <= 127:
+            reg_write(Destination, result)
+        else:
+            flag_set('carry', 1)
+            result = int(bin(result)[3:], 2)
+            reg_write(Destination, result)
         next_instruction()
     elif instruction_line[0] == "SUB":
-        print("Addition")
+        print("Subtraction")
         A = instruction_line[1]
         B = instruction_line[2]
         Destination = instruction_line[3]
         reg_write(Destination, A - B)
         next_instruction()
     elif instruction_line[0] == "CAL":
-        push(reg_read(7, False) + 1, False)
+        jump_to = instruction_line[1]
+        print("Call from stack")
+        RAM.write(reg_read(5, False), instruction_address + 1, False)  # writes to stack
+        reg_write(5, reg_read(5, False) - 1, False)  # "increments" (decrements) pointer
+        reg_write(7, jump_to, False)  # writes register 7 manually
+        # instead of running next_instruction()
     elif instruction_line[0] == "LDI":
         print("Load Immediate")
         Data = instruction_line[1]
@@ -84,5 +112,6 @@ while instruction_address in range(256):
         next_instruction()
     else:
         print(f"instruction {instruction_line[0]} not programmed yet")
+        next_instruction()
 
     instruction_address = reg_read(7, False)
