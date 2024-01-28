@@ -6,8 +6,10 @@
 # isnt really priority, first the CPU then this
 def reset():
     with open("Registers.bin", "wb") as f:
-        print("writing register file")
+        print("setting register file...")
         f.write(bytearray([0] * 8))
+        print("set register file!")
     with open("RAM.bin", "wb") as f:
-        print("writing RAM file")
+        print("setting RAM file...")
         f.write(bytearray([0] * 256))
+        print("set RAM file!")

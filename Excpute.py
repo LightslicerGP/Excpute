@@ -33,7 +33,7 @@ def reg_write(id: int, new_data: int, signed: bool = True):
 
 
 def flag_set(flag: str, sign: int):
-    flag_bits = {"carry": -1, "zero": -2, "parity": -3, "negative": -4}
+    flag_bits = {"carry": -1, "zero": -2, "parity": -3, "negative": -4, "overflow": -5}
 
     if sign == 0 or sign == 1:
         flag_byte = list(bin(reg_read(6, False))[2:].zfill(8))
@@ -43,7 +43,7 @@ def flag_set(flag: str, sign: int):
             updated_flag = int("".join(flag_byte), 2)
             reg_write(6, updated_flag, False)
         else:
-            raise ValueError("Flag must be carry, zero, parity, or negative")
+            raise ValueError("Flag must be carry, zero, parity, overflow, or negative")
 
     else:
         raise ValueError("flag_write number must be 1 or 0")
@@ -56,12 +56,13 @@ def flag_read(flag: str):
     if flag in flag_bits:
         return int(flag_byte[flag_bits[flag]])
     else:
-        raise ValueError("Flag must be carry, zero, parity, or negative")
+        raise ValueError("Flag must be carry, zero, parity, overflow, or negative")
 
 
 with open("assembled instruction", "r") as file:
     instructions = [
-        ([int(x) if x.isdigit() else x for x in line.split()]) for line in file
+        ([int(x) if x.lstrip("-").isdigit() else x for x in line.split()])
+        for line in file
     ]
 
 
@@ -90,13 +91,13 @@ while instruction_address in range(256):
             reg_write(7, instruction_address + 1, False)
 
     if instruction_line[0] == "NOP":
-        print(f"{instruction_line}: No Operation")
+        print(f"{instruction_address}: No Operation")
         next_instruction()
     elif instruction_line[0] == "HLT":
-        print(f"{instruction_line}: Halt Operation")
+        print(f"{instruction_address}: Halt Operation")
         exit()
     elif instruction_line[0] == "ADD":
-        print(f"{instruction_line}: Addition")
+        print(f"{instruction_address}: Addition")
         A = reg_read(instruction_line[1], True)
         B = reg_read(instruction_line[2], True)
         Destination = instruction_line[3]
@@ -108,45 +109,166 @@ while instruction_address in range(256):
             CarryFlag = instruction_line[5]
         except IndexError:
             CarryFlag = 0
-        
+
         if CarryFlag == 1:
-            if flag_read('carry') == 1:
-               result = A + B + 1
+            if flag_read("carry") == 1:
+                result = A + B + 1
         else:
             result = A + B
-        
-        if -128 <= result <= 127:
-            reg_write(Destination, result)
-        else:
+
+        if not (-128 <= result <= 127):
             if SetFlag == 1:
                 flag_set("carry", 1)
             result = int(bin(result)[3:], 2)
-            reg_write(Destination, result)
+        reg_write(Destination, result)
         next_instruction()
     elif instruction_line[0] == "SUB":
-        print(f"{instruction_line}: Subtraction")
-        A = instruction_line[1]
-        B = instruction_line[2]
+        print(f"{instruction_address}: Subtraction")
+        A = reg_read(instruction_line[1], True)
+        B = reg_read(instruction_line[2], True)
         Destination = instruction_line[3]
-        reg_write(Destination, A - B)
+        try:
+            SetFlag = instruction_line[4]
+        except IndexError:
+            SetFlag = 1
+
+        result = A - B
+
+        if not (-128 <= result <= 127):
+            if SetFlag == 1:
+                flag_set("carry", 1)
+            result = int(bin(256 + result)[2:], 2)
+
+        reg_write(Destination, result)
+        next_instruction()
+    elif instruction_line[0] == "MUL":
+        print(f"{instruction_address}: Multiplication")
+        A = reg_read(instruction_line[1], True)
+        B = reg_read(instruction_line[2], True)
+        Destination = instruction_line[3]
+
+        print("do later, too complicated so itll take too long to make rn")
+        next_instruction()
+    elif instruction_line[0] == "DVS":
+        print(f"{instruction_address}: Division")
+        A = reg_read(instruction_line[1], True)
+        B = reg_read(instruction_line[2], True)
+        Destination = instruction_line[3]
+
+        print("do later, too complicated so itll take too long to make rn")
+        next_instruction()
+    elif instruction_line[0] == "SQA":
+        print(f"{instruction_address}: Square")
+        A = reg_read(instruction_line[1], True)
+        B = reg_read(instruction_line[2], True)
+        Destination = instruction_line[3]
+
+        print("do later, too complicated so itll take too long to make rn")
+        next_instruction()
+    elif instruction_line[0] == "SQR":
+        print(f"{instruction_address}: Square root")
+        A = reg_read(instruction_line[1], True)
+        B = reg_read(instruction_line[2], True)
+        Destination = instruction_line[3]
+
+        print("do later, too complicated so itll take too long to make rn")
+        next_instruction()
+    elif instruction_line[0] == "ORR":
+        print(f"{instruction_address}: Or")
+        A = reg_read(instruction_line[1], False)  # THIS IS FALSE because
+        B = reg_read(instruction_line[2], False)  # its not math, just logic
+        Destination = instruction_line[3]
+        result = A | B
+        reg_write(Destination, result, False)
+        next_instruction()
+    elif instruction_line[0] == "AND":
+        print(f"{instruction_address}: And")
+        A = reg_read(instruction_line[1], False)  # THIS IS FALSE because
+        B = reg_read(instruction_line[2], False)  # its not math, just logic
+        Destination = instruction_line[3]
+        result = A & B
+        reg_write(Destination, result, False)
+        next_instruction()
+    elif instruction_line[0] == "XOR":
+        print(f"{instruction_address}: Xor")
+        A = reg_read(instruction_line[1], False)  # THIS IS FALSE because
+        B = reg_read(instruction_line[2], False)  # its not math, just logic
+        Destination = instruction_line[3]
+        result = A & B
+        reg_write(Destination, result, False)
+        next_instruction()
+    elif instruction_line[0] == "INV":
+        print(f"{instruction_address}: Invert")
+        A = reg_read(
+            instruction_line[1], False
+        )  # THIS IS FALSE because its not math, just logic
+        Destination = instruction_line[2]
+        result = A ^ 255
+        reg_write(Destination, result, False)
+        next_instruction()
+    elif instruction_line[0] == "INC":
+        print(f"{instruction_address}: Increment")
+        A = reg_read(instruction_line[1])
+        Destination = instruction_line[2]
+        if A == 127:
+            result = -128
+        else:
+            result = A + 1
+        reg_write(Destination, result)
+        next_instruction()
+    elif instruction_line[0] == "DEC":
+        print(f"{instruction_address}: Decrement")
+        A = reg_read(instruction_line[1])
+        Destination = instruction_line[2]
+        if A == -128:
+            result = 127
+        else:
+            result = A - 1
+        reg_write(Destination, result)
+        next_instruction()
+    elif instruction_line[0] == "RSH":
+        print(f"{instruction_address}: Right shift")
+        A = reg_read(instruction_line[1], False)
+        Destination = instruction_line[2]
+        result = A >> 1
+        reg_write(Destination, result, False)
+        next_instruction()
+    elif instruction_line[0] == "LSH":
+        print(f"{instruction_address}: Right shift")
+        A = reg_read(instruction_line[1], False)
+        Destination = instruction_line[2]
+        try:
+            SetFlag = instruction_line[3]
+        except IndexError:
+            SetFlag = 1
+
+        print(bin(A))
+        if (A << 1) > 255:
+            if SetFlag == 1:
+                flag_set("carry", 1)
+            # trim left 3 and then convert to number again? idk
+            print(bin(A << 1))
+        else:
+            result = A << 1
+        reg_write(Destination, result, False)
         next_instruction()
     elif instruction_line[0] == "CAL":
         jump_to = instruction_line[1]
-        print(f"{instruction_line}: Call from stack")
+        print(f"{instruction_address}: Call from stack")
         RAM.write(reg_read(5, False), instruction_address + 1, False)  # writes to stack
         reg_write(5, reg_read(5, False) - 1, False)  # "increments" (decrements) pointer
         reg_write(7, jump_to, False)  # writes register 7 manually
         # instead of running next_instruction()
     elif instruction_line[0] == "RTN":
-        print(f"{instruction_line}: Return from stack")
+        print(f"{instruction_address}: Return from stack")
         stack_pointer = reg_read(5, False)
         pointer_data = RAM.read(stack_pointer + 1, False)
         reg_write(5, reg_read(5, False) + 1, False)
         reg_write(7, pointer_data, False)
     elif instruction_line[0] == "LDI":
-        print(f"{instruction_line}: Load Immediate")
-        Data = instruction_line[1]
-        Register = instruction_line[2]
+        print(f"{instruction_address}: Load Immediate")
+        Register = instruction_line[1]
+        Data = instruction_line[2]
         reg_write(Register, Data)
         next_instruction()
     else:
