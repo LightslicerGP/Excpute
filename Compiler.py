@@ -13,3 +13,7 @@ def reset():
         print("setting RAM file...")
         f.write(bytearray([0] * 256))
         print("set RAM file!")
+    with open("Ports.bin", "wb") as f:
+        print("setting ports file...")
+        f.write(bytearray([0] * 256))
+        print("set ports file!")

@@ -1,5 +1,6 @@
-import RAM
 import Compiler
+import RAM
+import Port
 
 
 def reg_read(id: int, signed: bool = True):
@@ -234,7 +235,7 @@ while instruction_address in range(256):
         reg_write(Destination, result, False)
         next_instruction()
     elif instruction_line[0] == "LSH":
-        print(f"{instruction_address}: Right shift")
+        print(f"{instruction_address}: Left shift")
         A = reg_read(instruction_line[1], False)
         Destination = instruction_line[2]
         try:
@@ -242,37 +243,145 @@ while instruction_address in range(256):
         except IndexError:
             SetFlag = 1
 
-        print(bin(A))
         if (A << 1) > 255:
             if SetFlag == 1:
                 flag_set("carry", 1)
-            # trim left 3 and then convert to number again? idk
-            print(bin(A << 1))
+            result = (A << 1) - 256
+            reg_write(Destination, result, False)
         else:
             result = A << 1
         reg_write(Destination, result, False)
         next_instruction()
-    elif instruction_line[0] == "CAL":
-        jump_to = instruction_line[1]
-        print(f"{instruction_address}: Call from stack")
-        RAM.write(reg_read(5, False), instruction_address + 1, False)  # writes to stack
+    elif instruction_line[0] == "RBS":
+        print(f"{instruction_address}: Right barrel shift")
+        A = reg_read(instruction_line[1], False)
+        Destination = instruction_line[2]
+
+        result = (A >> 1) | (A << 7) & 255
+
+        reg_write(Destination, result, False)
+
+        next_instruction()
+    elif instruction_line[0] == "LBS":
+        print(f"{instruction_address}: Left barrel shift")
+        A = reg_read(instruction_line[1], False)
+        Destination = instruction_line[2]
+
+        result = ((A << 1) | (A >> 7)) & 255
+
+        reg_write(Destination, result, False)
+
+        next_instruction()
+    elif instruction_line[0] == "CMP":
+        print(f"{instruction_address}: Compare")
+        A = reg_read(instruction_line[1], False)
+        B = reg_read(instruction_line[2], False)
+
+        result = B - A
+
+        if result == 0:
+            flag_set("zero", 1)
+        else:
+            flag_set("zero", 0)
+
+        if result < 0:
+            flag_set("negative", 1)
+        else:
+            flag_set("negative", 0)
+
+        if B < A:
+            flag_set("carry", 1)
+        else:
+            flag_set("carry", 0)
+
+        next_instruction()
+    elif instruction_line[0] == "PSH":
+        print(f"{instruction_address}: Push to stack")
+        A = reg_read(instruction_line[1], False)
+        stack_pointer = reg_read(5, False)
+        RAM.write(stack_pointer, A, False)  # writes to stack
         reg_write(5, reg_read(5, False) - 1, False)  # "increments" (decrements) pointer
-        reg_write(7, jump_to, False)  # writes register 7 manually
+        next_instruction()
+    elif instruction_line[0] == "POP":
+        print(f"{instruction_address}: Pop from stack")
+        A = instruction_line[1]
+        stack_pointer = reg_read(5, False)
+        pointer_data = RAM.read(stack_pointer + 1, False)  # reads last pointer location
+        reg_write(A, pointer_data, False)  # writes from stack
+        reg_write(5, stack_pointer + 1, False)  # "decrements" (increments) pointer
+        next_instruction()
+    elif instruction_line[0] == "CAL":
+        print(f"{instruction_address}: Call from stack")
+        jump_to = instruction_line[1]
+        stack_pointer = reg_read(5, False)
+        RAM.write(stack_pointer, instruction_address + 1, False)  # writes to stack
+        reg_write(5, stack_pointer - 1, False)  # "increments" (decrements) pointer
+        reg_write(7, jump_to, False)  # jumps to new instruction adress
         # instead of running next_instruction()
     elif instruction_line[0] == "RTN":
         print(f"{instruction_address}: Return from stack")
         stack_pointer = reg_read(5, False)
-        pointer_data = RAM.read(stack_pointer + 1, False)
-        reg_write(5, reg_read(5, False) + 1, False)
-        reg_write(7, pointer_data, False)
+        pointer_data = RAM.read(stack_pointer + 1, False)  # reads last pointer location
+        reg_write(5, stack_pointer + 1, False)  # "decrements" (increments) pointer
+        # is this neccessary? - no RAM.write(stack_pointer + 1, 0, False)  # writes 0 to current pointer location
+        reg_write(7, pointer_data, False)  # returns to the instruction adress
+    elif instruction_line[0] == "CPY":
+        print(f"{instruction_address}: Copy")
+        A = instruction_line[1]
+        Destination = instruction_line[2]
+        data = reg_read(A)
+        reg_write(Destination, data)
+        next_instruction()
     elif instruction_line[0] == "LDI":
-        print(f"{instruction_address}: Load Immediate")
+        print(f"{instruction_address}: Load immediate")
         Register = instruction_line[1]
         Data = instruction_line[2]
         reg_write(Register, Data)
         next_instruction()
+    elif instruction_line[0] == "LOD":
+        print(f"{instruction_address}: Load from memory")
+        A = reg_read(instruction_line[1])
+        Destination = instruction_line[2]
+        data = RAM.read(A)
+        reg_write(Destination, data)
+        next_instruction()
+    elif instruction_line[0] == "STR":
+        print(f"{instruction_address}: Store to memory")
+        A = reg_read(instruction_line[1])
+        Destination = reg_read(instruction_line[2], False)
+        RAM.write(Destination, A)
+        next_instruction()
+    elif instruction_line[0] == "PTI":
+        print(f"{instruction_address}: Port input")
+        Address = instruction_line[1]
+        Destination = instruction_line[2]
+        data = Port.read(Address)
+        reg_write(Destination, data)
+        next_instruction()
+    elif instruction_line[0] == "PTO":
+        print(f"{instruction_address}: Port output")
+        A = instruction_line[1]
+        Address = instruction_line[2]
+        Port.write(A, Address)
+        next_instruction()
+    elif instruction_line[0] == "JMP":
+        print(f"{instruction_address}: Jump to instruction")
+        Address = instruction_line[1]
+        reg_write(7, Address, False)
+    elif instruction_line[0] == "JMP":
+        print(f"{instruction_address}: Jump to instruction")
+        Address = instruction_line[1]
+        reg_write(7, Address, False)
+    elif instruction_line[0] == "JMP":
+        print(f"{instruction_address}: Jump if zero")
+        A = reg_read(instruction_line[1])
+        Address = instruction_line[2]
+        if A == 0:   
+            reg_write(7, Address, False)
+        else:
+            next_instruction()
     else:
-        print(f"instruction {instruction_line[0]} not programmed yet")
+        print(f"instruction {instruction_line[0]} not programmed yet or unavailable")
         next_instruction()
 
     instruction_address = reg_read(7, False)
