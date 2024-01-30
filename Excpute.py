@@ -75,8 +75,7 @@ print("---------------")
 # kinda unneccessary to have the first be false but whatever
 reg_write(7, 0, False)  # set instruction address
 reg_write(5, 248, False)  # set stack address
-
-instruction_address = reg_read(7, False)
+instruction_address = reg_read(7, False) # set instruction pointer
 
 
 while instruction_address in range(256):

@@ -36,7 +36,7 @@ while running:
         if event.type == pygame.QUIT:
             running = False
 
-    # Add your display refresh logic here
+    # what do i do here
 
     pygame.display.flip()
 
