@@ -1,6 +1,7 @@
 import Compiler
 import RAM
 import Port
+import Display
 
 
 def reg_read(id: int, signed: bool = True):
@@ -67,13 +68,13 @@ with open("assembled instruction", "r") as file:
     ]
 
 
-# setup registers and ram
+# setup registers, ram, and display
 
 Compiler.reset()
 print("---------------")
 # kinda unneccessary to have the first be false but whatever
 reg_write(7, 0, False)  # set instruction address
-reg_write(5, 248, False)  # set stack adress
+reg_write(5, 248, False)  # set stack address
 
 instruction_address = reg_read(7, False)
 
@@ -376,10 +377,31 @@ while instruction_address in range(256):
         print(f"{instruction_address}: Jump if zero")
         A = reg_read(instruction_line[1])
         Address = instruction_line[2]
-        if A == 0:   
+        if A == 0:
             reg_write(7, Address, False)
         else:
             next_instruction()
+    elif instruction_line[0] == "SPD":
+        print(f"{instruction_address}: Set pixel data")
+        A = reg_read(instruction_line[1], False)
+        Property = instruction_line[2]
+
+        property_mapping = {0: 249, 1: 250, 2: 251, 3: 252, 4: 253}
+
+        if Property in property_mapping:  # r, g, b, x, y
+            RAM.write(property_mapping[Property], A, False)
+        elif Property == 5:
+            RAM.write(254, 1)  # set
+            Display.refresh()
+        elif Property == 6:
+            RAM.write(254, 2)  # reset
+            Display.refresh()
+        elif Property == 7:
+            RAM.write(254, 3)  # fill
+            Display.refresh()
+
+        next_instruction()
+
     else:
         print(f"instruction {instruction_line[0]} not programmed yet or unavailable")
         next_instruction()
