@@ -16,9 +16,7 @@ def refresh():
     g = RAM.read(250, False)
     b = RAM.read(251, False)
     mode = RAM.read(254)
-    print(mode)
     if mode == 1:
-        print(r, g, b, x, y)
         pixel_color = (r, g, b)
         pixel_rect = pygame.Rect(x * scale, y * scale, scale, scale)
         pygame.draw.rect(screen, pixel_color, pixel_rect)
@@ -29,16 +27,10 @@ def refresh():
     elif mode == 3:
         print("fill screen with color data")
 
-
-running = True
-while running:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-
-    # what do i do here
-
-    pygame.display.flip()
-
-
-pygame.quit()
+def start():
+    running = True
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+        pygame.display.flip()

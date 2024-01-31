@@ -1,3 +1,5 @@
+import threading
+import time
 import Compiler
 import RAM
 import Port
@@ -75,8 +77,14 @@ print("---------------")
 # kinda unneccessary to have the first be false but whatever
 reg_write(7, 0, False)  # set instruction address
 reg_write(5, 248, False)  # set stack address
-instruction_address = reg_read(7, False) # set instruction pointer
+instruction_address = reg_read(7, False)  # set instruction pointer
 
+def display_start():
+    Display.start()
+    
+threading.Thread(target=display_start, daemon=True).start()
+
+time.sleep(2)
 
 while instruction_address in range(256):
     try:
