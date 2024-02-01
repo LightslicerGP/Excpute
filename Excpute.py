@@ -4,7 +4,9 @@ import Compiler
 import RAM
 import Port
 import Display
+# import numba
 
+# numba.njit(cache = True)
 
 def reg_read(id: int, signed: bool = True):
     with open("Registers.bin", "rb") as f:
@@ -78,6 +80,7 @@ print("---------------")
 reg_write(7, 0, False)  # set instruction address
 reg_write(5, 248, False)  # set stack address
 instruction_address = reg_read(7, False)  # set instruction pointer
+debug = False
 
 def display_start():
     Display.start()
@@ -100,13 +103,16 @@ while instruction_address in range(256):
             reg_write(7, instruction_address + 1, False)
 
     if instruction_line[0] == "NOP":
-        print(f"{instruction_address}: No Operation")
+        if debug:
+            print(f"{instruction_address}: No Operation")
         next_instruction()
     elif instruction_line[0] == "HLT":
-        print(f"{instruction_address}: Halt Operation")
+        if debug:
+            print(f"{instruction_address}: Halt Operation")
         exit()
     elif instruction_line[0] == "ADD":
-        print(f"{instruction_address}: Addition")
+        if debug:
+            print(f"{instruction_address}: Addition")
         A = reg_read(instruction_line[1], True)
         B = reg_read(instruction_line[2], True)
         Destination = instruction_line[3]
@@ -132,7 +138,8 @@ while instruction_address in range(256):
         reg_write(Destination, result)
         next_instruction()
     elif instruction_line[0] == "SUB":
-        print(f"{instruction_address}: Subtraction")
+        if debug:
+            print(f"{instruction_address}: Subtraction")
         A = reg_read(instruction_line[1], True)
         B = reg_read(instruction_line[2], True)
         Destination = instruction_line[3]
@@ -151,7 +158,8 @@ while instruction_address in range(256):
         reg_write(Destination, result)
         next_instruction()
     elif instruction_line[0] == "MUL":
-        print(f"{instruction_address}: Multiplication")
+        if debug:
+            print(f"{instruction_address}: Multiplication")
         A = reg_read(instruction_line[1], True)
         B = reg_read(instruction_line[2], True)
         Destination = instruction_line[3]
@@ -159,7 +167,8 @@ while instruction_address in range(256):
         print("do later, too complicated so itll take too long to make rn")
         next_instruction()
     elif instruction_line[0] == "DVS":
-        print(f"{instruction_address}: Division")
+        if debug:
+            print(f"{instruction_address}: Division")
         A = reg_read(instruction_line[1], True)
         B = reg_read(instruction_line[2], True)
         Destination = instruction_line[3]
@@ -167,7 +176,8 @@ while instruction_address in range(256):
         print("do later, too complicated so itll take too long to make rn")
         next_instruction()
     elif instruction_line[0] == "SQA":
-        print(f"{instruction_address}: Square")
+        if debug:
+            print(f"{instruction_address}: Square")
         A = reg_read(instruction_line[1], True)
         B = reg_read(instruction_line[2], True)
         Destination = instruction_line[3]
@@ -175,7 +185,8 @@ while instruction_address in range(256):
         print("do later, too complicated so itll take too long to make rn")
         next_instruction()
     elif instruction_line[0] == "SQR":
-        print(f"{instruction_address}: Square root")
+        if debug:
+            print(f"{instruction_address}: Square root")
         A = reg_read(instruction_line[1], True)
         B = reg_read(instruction_line[2], True)
         Destination = instruction_line[3]
@@ -183,7 +194,8 @@ while instruction_address in range(256):
         print("do later, too complicated so itll take too long to make rn")
         next_instruction()
     elif instruction_line[0] == "ORR":
-        print(f"{instruction_address}: Or")
+        if debug:
+            print(f"{instruction_address}: Or")
         A = reg_read(instruction_line[1], False)  # THIS IS FALSE because
         B = reg_read(instruction_line[2], False)  # its not math, just logic
         Destination = instruction_line[3]
@@ -191,7 +203,8 @@ while instruction_address in range(256):
         reg_write(Destination, result, False)
         next_instruction()
     elif instruction_line[0] == "AND":
-        print(f"{instruction_address}: And")
+        if debug:
+            print(f"{instruction_address}: And")
         A = reg_read(instruction_line[1], False)  # THIS IS FALSE because
         B = reg_read(instruction_line[2], False)  # its not math, just logic
         Destination = instruction_line[3]
@@ -199,7 +212,8 @@ while instruction_address in range(256):
         reg_write(Destination, result, False)
         next_instruction()
     elif instruction_line[0] == "XOR":
-        print(f"{instruction_address}: Xor")
+        if debug:
+            print(f"{instruction_address}: Xor")
         A = reg_read(instruction_line[1], False)  # THIS IS FALSE because
         B = reg_read(instruction_line[2], False)  # its not math, just logic
         Destination = instruction_line[3]
@@ -207,7 +221,8 @@ while instruction_address in range(256):
         reg_write(Destination, result, False)
         next_instruction()
     elif instruction_line[0] == "INV":
-        print(f"{instruction_address}: Invert")
+        if debug:
+            print(f"{instruction_address}: Invert")
         A = reg_read(
             instruction_line[1], False
         )  # THIS IS FALSE because its not math, just logic
@@ -216,7 +231,8 @@ while instruction_address in range(256):
         reg_write(Destination, result, False)
         next_instruction()
     elif instruction_line[0] == "INC":
-        print(f"{instruction_address}: Increment")
+        if debug:
+            print(f"{instruction_address}: Increment")
         A = reg_read(instruction_line[1])
         Destination = instruction_line[2]
         if A == 127:
@@ -226,7 +242,8 @@ while instruction_address in range(256):
         reg_write(Destination, result)
         next_instruction()
     elif instruction_line[0] == "DEC":
-        print(f"{instruction_address}: Decrement")
+        if debug:
+            print(f"{instruction_address}: Decrement")
         A = reg_read(instruction_line[1])
         Destination = instruction_line[2]
         if A == -128:
@@ -236,14 +253,16 @@ while instruction_address in range(256):
         reg_write(Destination, result)
         next_instruction()
     elif instruction_line[0] == "RSH":
-        print(f"{instruction_address}: Right shift")
+        if debug:
+            print(f"{instruction_address}: Right shift")
         A = reg_read(instruction_line[1], False)
         Destination = instruction_line[2]
         result = A >> 1
         reg_write(Destination, result, False)
         next_instruction()
     elif instruction_line[0] == "LSH":
-        print(f"{instruction_address}: Left shift")
+        if debug:
+            print(f"{instruction_address}: Left shift")
         A = reg_read(instruction_line[1], False)
         Destination = instruction_line[2]
         try:
@@ -261,7 +280,8 @@ while instruction_address in range(256):
         reg_write(Destination, result, False)
         next_instruction()
     elif instruction_line[0] == "RBS":
-        print(f"{instruction_address}: Right barrel shift")
+        if debug:
+            print(f"{instruction_address}: Right barrel shift")
         A = reg_read(instruction_line[1], False)
         Destination = instruction_line[2]
 
@@ -271,7 +291,8 @@ while instruction_address in range(256):
 
         next_instruction()
     elif instruction_line[0] == "LBS":
-        print(f"{instruction_address}: Left barrel shift")
+        if debug:
+            print(f"{instruction_address}: Left barrel shift")
         A = reg_read(instruction_line[1], False)
         Destination = instruction_line[2]
 
@@ -281,7 +302,8 @@ while instruction_address in range(256):
 
         next_instruction()
     elif instruction_line[0] == "CMP":
-        print(f"{instruction_address}: Compare")
+        if debug:
+            print(f"{instruction_address}: Compare")
         A = reg_read(instruction_line[1], False)
         B = reg_read(instruction_line[2], False)
 
@@ -304,14 +326,16 @@ while instruction_address in range(256):
 
         next_instruction()
     elif instruction_line[0] == "PSH":
-        print(f"{instruction_address}: Push to stack")
+        if debug:
+            print(f"{instruction_address}: Push to stack")
         A = reg_read(instruction_line[1], False)
         stack_pointer = reg_read(5, False)
         RAM.write(stack_pointer, A, False)  # writes to stack
         reg_write(5, reg_read(5, False) - 1, False)  # "increments" (decrements) pointer
         next_instruction()
     elif instruction_line[0] == "POP":
-        print(f"{instruction_address}: Pop from stack")
+        if debug:
+            print(f"{instruction_address}: Pop from stack")
         A = instruction_line[1]
         stack_pointer = reg_read(5, False)
         pointer_data = RAM.read(stack_pointer + 1, False)  # reads last pointer location
@@ -319,7 +343,8 @@ while instruction_address in range(256):
         reg_write(5, stack_pointer + 1, False)  # "decrements" (increments) pointer
         next_instruction()
     elif instruction_line[0] == "CAL":
-        print(f"{instruction_address}: Call from stack")
+        if debug:
+            print(f"{instruction_address}: Call from stack")
         jump_to = instruction_line[1]
         stack_pointer = reg_read(5, False)
         RAM.write(stack_pointer, instruction_address + 1, False)  # writes to stack
@@ -327,61 +352,66 @@ while instruction_address in range(256):
         reg_write(7, jump_to, False)  # jumps to new instruction adress
         # instead of running next_instruction()
     elif instruction_line[0] == "RTN":
-        print(f"{instruction_address}: Return from stack")
+        if debug:
+            print(f"{instruction_address}: Return from stack")
         stack_pointer = reg_read(5, False)
         pointer_data = RAM.read(stack_pointer + 1, False)  # reads last pointer location
         reg_write(5, stack_pointer + 1, False)  # "decrements" (increments) pointer
         # is this neccessary? - no RAM.write(stack_pointer + 1, 0, False)  # writes 0 to current pointer location
         reg_write(7, pointer_data, False)  # returns to the instruction adress
     elif instruction_line[0] == "CPY":
-        print(f"{instruction_address}: Copy")
+        if debug:
+            print(f"{instruction_address}: Copy")
         A = instruction_line[1]
         Destination = instruction_line[2]
         data = reg_read(A)
         reg_write(Destination, data)
         next_instruction()
     elif instruction_line[0] == "LDI":
-        print(f"{instruction_address}: Load immediate")
+        if debug:
+            print(f"{instruction_address}: Load immediate")
         Register = instruction_line[1]
         Data = instruction_line[2]
         reg_write(Register, Data)
         next_instruction()
     elif instruction_line[0] == "LOD":
-        print(f"{instruction_address}: Load from memory")
+        if debug:
+            print(f"{instruction_address}: Load from memory")
         A = reg_read(instruction_line[1])
         Destination = instruction_line[2]
         data = RAM.read(A)
         reg_write(Destination, data)
         next_instruction()
     elif instruction_line[0] == "STR":
-        print(f"{instruction_address}: Store to memory")
+        if debug:
+            print(f"{instruction_address}: Store to memory")
         A = reg_read(instruction_line[1])
         Destination = reg_read(instruction_line[2], False)
         RAM.write(Destination, A)
         next_instruction()
     elif instruction_line[0] == "PTI":
-        print(f"{instruction_address}: Port input")
+        if debug:
+            print(f"{instruction_address}: Port input")
         Address = instruction_line[1]
         Destination = instruction_line[2]
         data = Port.read(Address)
         reg_write(Destination, data)
         next_instruction()
     elif instruction_line[0] == "PTO":
-        print(f"{instruction_address}: Port output")
+        if debug:
+            print(f"{instruction_address}: Port output")
         A = instruction_line[1]
         Address = instruction_line[2]
         Port.write(A, Address)
         next_instruction()
     elif instruction_line[0] == "JMP":
-        print(f"{instruction_address}: Jump to instruction")
+        if debug:
+            print(f"{instruction_address}: Jump to instruction")
         Address = instruction_line[1]
         reg_write(7, Address, False)
-    elif instruction_line[0] == "JMP":
-        print(f"{instruction_address}: Jump to instruction")
-        Address = instruction_line[1]
-        reg_write(7, Address, False)
-    elif instruction_line[0] == "JMP":
-        print(f"{instruction_address}: Jump if zero")
+    elif instruction_line[0] == "JIZ":
+        if debug:
+            print(f"{instruction_address}: Jump if zero")
         A = reg_read(instruction_line[1])
         Address = instruction_line[2]
         if A == 0:
@@ -389,7 +419,8 @@ while instruction_address in range(256):
         else:
             next_instruction()
     elif instruction_line[0] == "SPD":
-        print(f"{instruction_address}: Set pixel data")
+        if debug:
+            print(f"{instruction_address}: Set pixel data")
         A = reg_read(instruction_line[1], False)
         Property = instruction_line[2]
 
