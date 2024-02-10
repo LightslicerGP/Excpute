@@ -4,8 +4,6 @@ A 16 bit cpu VM that was meant to be made in minecraft, but it was too tough so 
 
 V2.2 is meant to fix things and have a clean start, NOT using a string of binary, but using the ACTUAL instruction sheet itself, should prevent a bunch of conversions and whatnot (thank you mr_nano on discord for pointing this out)
 
-V2.3 is v2.2 but rewritten to run faster, focusing on speed before features, so at the start there wont be any ram or register .bin files, but instead arrays created by the code itself. BUT this will still use the same ISA as v2.2
-
 [Documentation](https://docs.google.com/spreadsheets/d/1jg-Fbts24ksjgkxZRkGntg0EJQws3mo0vg7sR-p3xGc/edit?usp=sharing)
 
 ## Specs
