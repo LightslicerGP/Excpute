@@ -34,3 +34,4 @@ def start():
             if event.type == pygame.QUIT:
                 running = False
         pygame.display.flip()
+

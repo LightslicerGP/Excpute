@@ -1,5 +1,6 @@
 # import Operations
 import threading
+import pygame
 import Display
 import RAM
 import Port
@@ -13,6 +14,7 @@ def display_start():
 
 threading.Thread(target=display_start, daemon=True).start()
 debug = False
+print_registers = False
 
 
 def reg_read(id: int, signed: bool = True):
@@ -467,44 +469,26 @@ instructions = {
     "SPD": lambda ra, pr: spd_op(ra, pr),
 }
 
-program = [
-    ("LDI", 0, 0),
-    ("LDI", 1, -128),
-    ("LDI", 2, 0),
-    ("LDI", 3, 0),
-    ("LDI", 4, 0),
-    ("SPD", 0, 0),
-    ("SPD", 1, 1),
-    ("SPD", 2, 2),
-    ("SPD", 3, 3),
-    ("SPD", 4, 4),
-    ("SPD", 0, 5),
-    ("INC", 3, 3),
-    ("XOR", 3, 2, 0),
-    ("JIZ", 0, 17),
-    ("SPD", 3, 3),
-    ("SPD", 0, 5),
-    ("JMP", 11),
-    ("LDI", 3, 0),
-    ("INC", 4, 4),
-    ("INC", 2, 2),
-    ("XOR", 4, 2, 0),
-    ("JIZ", 0, 0),
-    ("SPD", 2, 2),
-    ("SPD", 4, 4),
-    ("JMP", 14),
-]
-
+program = [('LDI', 2, -1), ('SPD', 2, 2), ('LDI', 0, 1), ('SPD', 0, 5), ('LDI', 1, -128), ('JMP', 0)]
 
 while instruction_address < 256:
+    if debug or print_registers:
+        print(registers)
     try:
         instruction = program[instruction_address]
     except IndexError:
         print("Ran out of instructions, halted automatically")
         exit()
-    op = instruction[0]
+    op = instruction[0].upper()
     args = instruction[1:]
 
     instructions[op](*args)
 
     instruction_address = reg_read(7, False)
+
+
+events = pygame.event.get()
+for event in events:
+    if event.type == pygame.KEYDOWN:
+        if event.key == pygame.K_0:
+            exit()

@@ -46,9 +46,9 @@ V2.3 is v2.2 but rewritten to run faster, focusing on speed before features, so 
 
 - Storage
 
-9. data storage register location push (push data with port 10)
-10. data push (with port 9)
-11. data storage register location push (pull data with port 12)
-12. data pull (with port 11)
-13. mouse x coordinate push
-14. mouse y coordinate push
+7. data storage register location push (push data with port 8)
+8. data push (with port 7)
+9. data storage register location push (pull data with port 10)
+10. data pull (with port 9)
+11. mouse x coordinate push
+12. mouse y coordinate push
