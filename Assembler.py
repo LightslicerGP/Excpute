@@ -74,8 +74,9 @@ with open("Instructions Compiled", "w") as main_file:
             jump_name = line.split(":")[0]
             jumps[jump_name] = line_number
             line = ""
+        else:
+            line_number += 1
         main_file.write(line)
-        line_number += 1
     print("jumps:", jumps) if debug else None
 
 #  Replace all constants names with their values
@@ -108,6 +109,36 @@ with open("Instructions Compiled", "w") as main_file:
         line = line.upper()
         main_file.write(line)
 
+# change unsigned numbers to signed for ldi
+print("changing unsigned numbers to signed for ldi") if debug else None
+with open("Instructions Compiled", "r") as instruction_file:
+    lines = instruction_file.readlines()
+with open("Instructions Compiled", "w") as main_file:
+    for line in lines:
+        if line.startswith("LDI"):
+            if 256 > int(line.split()[2]) > 127:
+                line = line.replace(line.split()[2], str(-(256 - int(line.split()[2]))))
+        main_file.write(line)
+
+
+# fill missing operands
+print("filling missing operands") if debug else None
+with open("Instructions Compiled", "r") as instruction_file:
+    lines = instruction_file.readlines()
+with open("Instructions Compiled", "w") as main_file:
+    for line in lines:
+        if line.startswith(("INC", "DEC", "RSH", "LSH", "INV", "LOD", "STR")): # two operands
+            if len(line.split()) == 2: # one opcode, only one operand
+                fragments = line.split()
+                fragments.append(fragments[1])
+                line = " ".join(fragments) + "\n"
+        elif line.startswith(("ADD","SUB","MLT","DVS","SQA","SQR","ORR","AND","XOR")): # three operands
+            if len(line.split()) == 3: # one opcode, only 2 operands
+                fragments = line.split()
+                fragments.append(fragments[1])
+                line = " ".join(fragments) + "\n"
+        main_file.write(line)
+
 
 # remove last line
 print("removing last line") if debug else None
@@ -117,19 +148,20 @@ with open("Instructions Compiled", "w") as main_file:
     main_file.write(lines.rstrip("\n"))
 
 
-# print array
-print("printing array") if debug else None
-with open("Instructions Compiled", "r") as instruction_file:
-    lines = instruction_file.readlines()
-print("\n")
-instruction_array = [
-    tuple(
-        int(item) if re.match(r"^-?\d+$", item) else item
-        for item in line.strip().split()
-    )
-    for line in lines
-]
-print(str(instruction_array) + "\n")
+# got rid because its built into the cpu now
+# # print array
+# print("printing array") if debug else None
+# with open("Instructions Compiled", "r") as instruction_file:
+#     lines = instruction_file.readlines()
+# print("\n")
+# instruction_array = [
+#     tuple(
+#         int(item) if re.match(r"^-?\d+$", item) else item
+#         for item in line.strip().split()
+#     )
+#     for line in lines
+# ]
+# print(str(instruction_array) + "\n")
 
 
 # # sample title

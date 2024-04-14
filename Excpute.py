@@ -1,9 +1,10 @@
 # import Operations
 import threading
 import pygame
+import re
 import Display
-import RAM
 import Port
+import RAM
 
 registers = [0] * 8
 
@@ -182,7 +183,7 @@ def xor_op(regA, regB, regDest):
         print(f"{instruction_address}: Xor")
     A = reg_read(regA, False)  # THIS IS FALSE because
     B = reg_read(regB, False)  # its not math, just logic
-    result = A & B
+    result = A ^ B
     reg_write(regDest, result, False)
     next_instruction()
 
@@ -469,16 +470,30 @@ instructions = {
     "SPD": lambda ra, pr: spd_op(ra, pr),
 }
 
-program = [('LDI', 2, -1), ('SPD', 2, 2), ('LDI', 0, 1), ('SPD', 0, 5), ('LDI', 1, -128), ('JMP', 0)]
+def get_instructions(file):
+    with open(file, "r") as instruction_file:
+        lines = instruction_file.readlines()
+    instruction_array = [
+        tuple(
+            int(item) if re.match(r"^-?\d+$", item) else item
+            for item in line.strip().split()
+        )
+        for line in lines
+    ]
+    return instruction_array
+
+program = get_instructions("Instructions Compiled")
 
 while instruction_address < 256:
-    if debug or print_registers:
-        print(registers)
     try:
         instruction = program[instruction_address]
     except IndexError:
         print("Ran out of instructions, halted automatically")
+        if debug:
+            print("Instruction address:", instruction_address)
         exit()
+    if debug or print_registers:
+        print(registers)
     op = instruction[0].upper()
     args = instruction[1:]
 
