@@ -93,10 +93,12 @@ def add_op(regA, regB, regDest, SetFlag, CarryFlag):
     else:
         result = A + B
 
-    if not (-128 <= result <= 127):
+    if result > 127:
+        result = result - 256
+    elif result < -128:
         if SetFlag == 1:
             flag_set("carry", 1)
-        result = int(bin(result)[3:], 2)
+        result = result + 256
     reg_write(regDest, result)
     next_instruction()
 
@@ -109,10 +111,12 @@ def sub_op(regA, regB, regDest, SetFlag):
 
     result = A - B
 
-    if not (-128 <= result <= 127):
+    if result > 127:
+        result = result - 256
+    elif result < -128:
         if SetFlag == 1:
             flag_set("carry", 1)
-        result = int(bin(256 + result)[2:], 2)
+        result = result + 256
 
     reg_write(regDest, result)
     next_instruction()
@@ -197,27 +201,29 @@ def inv_op(regA, regDest):
     next_instruction()
 
 
-def inc_op(regA, regDest):
+def inc_op(regA, regDest, SetFlag):
     if debug:
         print(f"{instruction_address}: Increment")
-    A = reg_read(regA)
-    if A == 127:
-        result = -128
+    A = reg_read(regA, False)
+    if A == 255:
+        if SetFlag == 1:
+            flag_set("carry", 1)
+        result = 0
     else:
         result = A + 1
-    reg_write(regDest, result)
+    reg_write(regDest, result, False)
     next_instruction()
 
 
 def dec_op(regA, regDest):
     if debug:
         print(f"{instruction_address}: Decrement")
-    A = reg_read(regA)
-    if A == -128:
-        result = 127
+    A = reg_read(regA, False)
+    if A == 0:
+        result = 255
     else:
         result = A - 1
-    reg_write(regDest, result)
+    reg_write(regDest, result, False)
     next_instruction()
 
 
@@ -235,13 +241,13 @@ def lsh_op(regA, regDest, SetFlag):
         print(f"{instruction_address}: Left shift")
     A = reg_read(regA, False)
 
-    if (A << 1) > 255:
+    result = A << 1
+
+    if result > 255:
         if SetFlag == 1:
             flag_set("carry", 1)
-        result = (A << 1) - 256
-        reg_write(regDest, result, False)
-    else:
-        result = A << 1
+        result = result - 256
+        
     reg_write(regDest, result, False)
     next_instruction()
 
@@ -377,14 +383,6 @@ def pti_op(address, regDest):
     next_instruction()
 
 
-def pti_op(address, regDest):
-    if debug:
-        print(f"{instruction_address}: Port input")
-    data = Port.read(address)
-    reg_write(regDest, data)
-    next_instruction()
-
-
 def pto_op(regA, address):
     if debug:
         print(f"{instruction_address}: Port output")
@@ -448,7 +446,7 @@ instructions = {
     "AND": lambda ra, rb, rd: and_op(ra, rb, rd),
     "XOR": lambda ra, rb, rd: xor_op(ra, rb, rd),
     "INV": lambda ra, rd: inv_op(ra, rd),
-    "INC": lambda ra, rd: inc_op(ra, rd),
+    "INC": lambda ra, rd, sf=1: inc_op(ra, rd, sf),
     "DEC": lambda ra, rd: dec_op(ra, rd),
     "RSH": lambda ra, rd: rsh_op(ra, rd),
     "LSH": lambda ra, rd, sf=1: lsh_op(ra, rd, sf),
@@ -484,6 +482,9 @@ def get_instructions(file):
 
 program = get_instructions("Instructions Compiled")
 
+if debug:
+    print(program)
+
 while instruction_address < 256:
     try:
         instruction = program[instruction_address]
@@ -492,12 +493,12 @@ while instruction_address < 256:
         if debug:
             print("Instruction address:", instruction_address)
         exit()
-    if debug or print_registers:
-        print(registers)
     op = instruction[0].upper()
     args = instruction[1:]
 
     instructions[op](*args)
+    if debug or print_registers:
+        print(registers)
 
     instruction_address = reg_read(7, False)
 
