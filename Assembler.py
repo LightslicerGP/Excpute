@@ -55,6 +55,10 @@ with open("Instructions Compiled", "w") as main_file:
             line = ""
         main_file.write(line)
     print("constants:", constants) if debug else None
+    constants = dict(
+        sorted(constants.items(), key=lambda item: len(item[0]), reverse=True)
+    )  # so when replacing it checks longest first in case like "set" gets checked before "reset"
+    print("constants sorted:", constants) if debug else None
 
 # keep track of function names, and the line number, then delete the lines
 (
@@ -78,6 +82,10 @@ with open("Instructions Compiled", "w") as main_file:
             line_number += 1
         main_file.write(line)
     print("jumps:", jumps) if debug else None
+    jumps = dict(
+        sorted(jumps.items(), key=lambda item: len(item[0]), reverse=True)
+    )  # same reasoning as before
+    print("jumps sorted:", jumps) if debug else None
 
 #  Replace all constants names with their values
 print("replacing all constants names with their values") if debug else None
@@ -85,8 +93,17 @@ with open("Instructions Compiled", "r") as instruction_file:
     lines = instruction_file.readlines()
 with open("Instructions Compiled", "w") as main_file:
     for line in lines:
-        for key, value in constants.items():
-            line = line.replace(key, str(value))
+
+        if not line.lower().startswith(("cal", "jmp", "jiz")):
+            for key, value in constants.items():
+                line = line[:4] + line[4:].replace(key, str(value))
+
+        elif line.lower().startswith("jiz"):
+            split_line = line.split()
+            for key, value in constants.items():
+                split_line[1] = split_line[1].replace(key, str(value))
+            line = f"{split_line[0]} {split_line[1]} {split_line[2]}\n"
+
         main_file.write(line)
 
 #  replace all function names with function line numbers
@@ -97,7 +114,7 @@ with open("Instructions Compiled", "w") as main_file:
     for line in lines:
         if line.lower().startswith(("cal", "jmp", "jiz")):
             for key, value in jumps.items():
-                line = line.replace(key, str(value))
+                line = line[:4] + line[4:].replace(key, str(value))
         main_file.write(line)
 
 # capitalize all opcodes
@@ -127,13 +144,17 @@ with open("Instructions Compiled", "r") as instruction_file:
     lines = instruction_file.readlines()
 with open("Instructions Compiled", "w") as main_file:
     for line in lines:
-        if line.startswith(("INC", "DEC", "RSH", "LSH", "INV", "LOD", "STR")): # two operands
-            if len(line.split()) == 2: # one opcode, only one operand
+        if line.startswith(
+            ("INC", "DEC", "RSH", "LSH", "INV", "LOD", "STR", "SPD")
+        ):  # two operands
+            if len(line.split()) == 2:  # one opcode, only one operand
                 fragments = line.split()
                 fragments.append(fragments[1])
                 line = " ".join(fragments) + "\n"
-        elif line.startswith(("ADD","SUB","MLT","DVS","SQA","SQR","ORR","AND","XOR")): # three operands
-            if len(line.split()) == 3: # one opcode, only 2 operands
+        elif line.startswith(
+            ("ADD", "SUB", "MLT", "DVS", "SQA", "SQR", "ORR", "AND", "XOR")
+        ):  # three operands
+            if len(line.split()) == 3:  # one opcode, only 2 operands
                 fragments = line.split()
                 fragments.append(fragments[1])
                 line = " ".join(fragments) + "\n"

@@ -1,5 +1,9 @@
 Ports = [0] * 256
 
+import Keyboard
+
+def hardware(event):
+    Keyboard.handle_key_event(event)
 
 def read(id: int, signed: bool = True):
     value = Ports[id]

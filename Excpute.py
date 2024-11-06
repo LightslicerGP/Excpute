@@ -1,19 +1,17 @@
 # import Operations
-import threading
+# import threading
+# import Display
 import pygame
 import re
-import Display
 import Port
 import RAM
+from Display import init_display, update_display
+import Assembler  # TEMP ASSEMBLY
+import Keyboard  # This imports the IO.py file, i dont want to but oh well 10/31/24
 
 registers = [0] * 8
 
 
-def display_start():
-    Display.start()
-
-
-threading.Thread(target=display_start, daemon=True).start()
 debug = False
 print_registers = False
 
@@ -67,6 +65,10 @@ def flag_set(flag: str, sign: int):
 
     else:
         raise ValueError("flag_write number must be 1 or 0")
+
+
+global instruction_address
+instruction_address = reg_read(7, False)
 
 
 def next_instruction():
@@ -247,7 +249,7 @@ def lsh_op(regA, regDest, SetFlag):
         if SetFlag == 1:
             flag_set("carry", 1)
         result = result - 256
-        
+
     reg_write(regDest, result, False)
     next_instruction()
 
@@ -308,7 +310,7 @@ def psh_op(regA):
     A = reg_read(regA, False)
     stack_pointer = reg_read(5, False)
     RAM.write(stack_pointer, A, False)  # writes to stack
-    reg_write(5, reg_read(5, False) - 1, False)  # "increments" (decrements) pointer
+    reg_write(5, stack_pointer - 1, False)  # "increments" (decrements) pointer
     next_instruction()
 
 
@@ -411,26 +413,14 @@ def spd_op(regA, property):
         print(f"{instruction_address}: Set pixel data")
     A = reg_read(regA, False)
 
-    property_mapping = {0: 249, 1: 250, 2: 251, 3: 252, 4: 253}
-
-    if property in property_mapping:  # r, g, b, x, y
-        RAM.write(property_mapping[property], A, False)
-    elif property == 5:
-        RAM.write(254, 1)  # set
-        Display.refresh()
-    elif property == 6:
-        RAM.write(254, 2)  # reset
-        Display.refresh()
-    elif property == 7:
-        RAM.write(254, 3)  # fill
-        Display.refresh()
+    if property < 5:  # r, g, b, x, y
+        ram_address = property + 249  # 0 -> 249, 4 -> 253
+        RAM.write(ram_address, A, False)
+    elif property >= 5:  # set, reset, fill
+        ram_data = property - 4  # 5 -> 1, 7 -> 3
+        RAM.write(254, ram_data, False)
 
     next_instruction()
-
-
-instruction_address = reg_read(7, False)
-reg_write(7, 0, False)  # set instruction address
-reg_write(5, 248, False)  # set stack address
 
 
 instructions = {
@@ -468,6 +458,7 @@ instructions = {
     "SPD": lambda ra, pr: spd_op(ra, pr),
 }
 
+
 def get_instructions(file):
     with open(file, "r") as instruction_file:
         lines = instruction_file.readlines()
@@ -480,31 +471,49 @@ def get_instructions(file):
     ]
     return instruction_array
 
-program = get_instructions("Instructions Compiled")
 
-if debug:
-    print(program)
-
-while instruction_address < 256:
-    try:
+def update_cpu(program):
+    global instruction_address
+    if instruction_address < 256:
         instruction = program[instruction_address]
-    except IndexError:
+
+        op = instruction[0].upper()
+        args = instruction[1:]
+
+        instructions[op](*args)
+
+        if debug or print_registers:
+            print(registers)
+
+        instruction_address = reg_read(7, False)
+    else:
         print("Ran out of instructions, halted automatically")
         if debug:
             print("Instruction address:", instruction_address)
         exit()
-    op = instruction[0].upper()
-    args = instruction[1:]
-
-    instructions[op](*args)
-    if debug or print_registers:
-        print(registers)
-
-    instruction_address = reg_read(7, False)
 
 
-events = pygame.event.get()
-for event in events:
-    if event.type == pygame.KEYDOWN:
-        if event.key == pygame.K_0:
-            exit()
+scale = 4
+renderer = init_display(scale)
+
+program = get_instructions("Instructions Compiled")
+reg_write(7, 0, False)  # set instruction address
+reg_write(5, 248, False)  # set stack address
+
+if debug:
+    print(program)
+
+running = True
+
+while running:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+        Port.hardware(event)  # for keuybaorrd stfufusuhfaahhfsiuiuh 10/31/24
+    pygame.display.flip()
+
+    update_cpu(program)
+
+    update_display(renderer, scale)
+
+pygame.quit()
