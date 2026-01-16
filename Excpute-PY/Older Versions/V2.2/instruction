@@ -1,0 +1,8 @@
+LDI 64 3
+CAL Done
+HLT # test comment
+
+Done:
+    LDI 64 2
+    ADD 2 3 4
+    RTN

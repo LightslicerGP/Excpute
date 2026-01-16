@@ -1,0 +1,34 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Build C++ project",
+      "type": "shell",
+      "command": "g++",
+      "args": [
+        // "-g",
+        "-std=c++20",
+        "-Isrc/include",
+        "-Lsrc/lib",
+        "-O3",
+        // "-march=native", // optimize for the local machine architecture
+        "-o",
+        "Excpute",
+        "Excpute.cpp",
+        "RAM.cpp",
+        "Display.cpp",
+        "Ports.cpp",
+        "Mouse.cpp",
+        "Keyboard.cpp",
+        "-lmingw32",
+        "-lSDL2main",
+        "-lSDL2"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": ["$gcc"]
+    }
+  ]
+}

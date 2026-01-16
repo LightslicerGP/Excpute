@@ -1,0 +1,239 @@
+r0 = 0
+r1 = 1
+r2 = 2
+r3 = 3
+r4 = 4
+r5 = 5
+r6 = 6
+r7 = 7
+
+rSP = 5
+rFlags = 6
+rPC = 7
+
+r_col = 0
+g_col = 1
+b_col = 2
+x_coord = 3
+y_coord = 4
+set_px = 5
+fill_display = 6
+push_buffer = 7
+
+on = 255
+off = 0
+
+init:
+# set red pixel
+    
+    ldi r0 on
+    spd r0 r_col
+    
+    ldi r0 128
+    spd r0 x_coord
+    spd r0 y_coord
+    spd set_px
+
+    ldi r0 3
+    ldi r1 255
+    str r1 r0
+
+    ldi r0 0
+    spd r0 x_coord # 10
+    spd r0 y_coord
+
+loop:
+
+# restore the pixel back 
+
+    ldi r0 0
+    lod r0 r0 # 10
+    spd r0 r_col
+
+    ldi r0 1
+    lod r0 r0
+    spd r0 g_col
+
+    ldi r0 2
+    lod r0 r0
+    spd r0 b_col
+
+    spd set_px
+
+# get the cursor position
+
+    pti 10 r0
+    spd r0 x_coord # 20
+
+    pti 11 r0
+    spd r0 y_coord
+
+# test if theyre scrolling/clicking
+
+    pti 1 r3
+    ldi r4 0b00000010
+    and r3 r4 r3
+    xor r3 r4 r3
+    jiz r3 red_up
+red_up_done:
+
+    pti 3 r3
+    ldi r4 0b00010000
+    and r3 r4 r3
+    xor r3 r4 r3
+    jiz r3 red_down
+red_down_done:
+
+    pti 1 r3
+    ldi r4 0b00000001
+    and r3 r4 r3
+    xor r3 r4 r3
+    jiz r3 green_up
+green_up_done:
+
+    pti 3 r3
+    ldi r4 0b00001000
+    and r3 r4 r3
+    xor r3 r4 r3
+    jiz r3 green_down
+green_down_done:
+
+    pti 2 r3
+    ldi r4 0b10000000
+    and r3 r4 r3
+    xor r3 r4 r3
+    jiz r3 blue_up
+blue_up_done:
+
+    pti 3 r3
+    ldi r4 0b00000100
+    and r3 r4 r3
+    xor r3 r4 r3
+    jiz r3 blue_down
+blue_down_done:
+
+    pti 9 r3
+    ldi r4 0b10000000
+    and r3 r4 r3
+    xor r3 r4 r3
+    jiz r3 left_click
+left_click_done:
+
+    pti 9 r3
+    ldi r4 0b00100000
+    and r3 r4 r3
+    xor r3 r4 r3
+    jiz r3 right_click
+right_click_done:
+
+    spd r1 r_col 1 # store r in mem adr 0
+    ldi r2 0
+    str r1 r2
+
+    spd r1 g_col 1 # store g in mem adr 1
+    ldi r2 1
+    str r1 r2
+
+    spd r1 b_col 1 # store b in mem adr 2
+    ldi r2 2
+    str r1 r2
+
+# display cursor
+
+    ldi r3 3
+    lod r3 r3
+    spd r3 r_col
+    ldi r3 4
+    lod r3 r3
+    spd r3 g_col
+    ldi r3 5
+    lod r3 r3
+    spd r3 b_col
+
+    spd set_px
+
+    spd push_buffer # display cursor
+
+    jmp loop
+
+
+
+red_up:
+    ldi r3 3
+    lod r3 r3
+    inc r3
+
+    ldi r4 3
+    str r3 r4
+
+    jmp red_up_done
+
+red_down:
+    ldi r3 3
+    lod r3 r3
+    dec r3
+
+    ldi r4 3
+    str r3 r4
+    jmp red_down_done
+
+green_up:
+    ldi r3 4
+    lod r3 r3
+    inc r3
+
+    ldi r4 4
+    str r3 r4
+
+    jmp green_up_done
+
+green_down:
+    ldi r3 4
+    lod r3 r3
+    dec r3
+
+    ldi r4 4
+    str r3 r4
+    jmp green_down_done
+
+blue_up:
+    ldi r3 5
+    lod r3 r3
+    inc r3
+
+    ldi r4 5
+    str r3 r4
+
+    jmp blue_up_done
+
+blue_down:
+    ldi r3 5
+    lod r3 r3
+    dec r3
+
+    ldi r4 5
+    str r3 r4
+    jmp blue_down_done
+
+
+
+left_click:
+    ldi r3 3
+    lod r3 r3
+    spd r3 r_col
+    spd r3 g_col
+    spd r3 b_col
+
+    spd set_px
+    jmp left_click_done
+
+
+
+right_click:
+    ldi r3 0
+    spd r3 r_col
+    spd r3 g_col
+    spd r3 b_col
+
+    spd set_px
+    jmp right_click_done

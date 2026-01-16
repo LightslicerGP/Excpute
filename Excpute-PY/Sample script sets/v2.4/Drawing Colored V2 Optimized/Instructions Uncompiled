@@ -1,0 +1,383 @@
+r0 = 0
+r1 = 1
+r2 = 2
+r3 = 3
+r4 = 4
+r5 = 5
+r6 = 6
+r7 = 7
+
+rSP = 5
+rFlags = 6
+rPC = 7
+
+r_col = 0
+g_col = 1
+b_col = 2
+x_coord = 3
+y_coord = 4
+set_px = 5
+fill_display = 6
+push_buffer = 7
+
+on = 255
+off = 0
+
+
+init:
+# set red pixel
+    
+    ldi r0 on
+    spd r0 r_col
+    
+    ldi r0 128
+    spd r0 x_coord
+    spd r0 y_coord
+    spd set_px
+
+    ldi r0 3
+    ldi r1 255
+    str r1 r0
+
+    ldi r0 0
+    spd r0 x_coord
+    spd r0 y_coord
+
+loop:
+
+# restore the pixel back 
+
+    ldi r0 0
+    lod r0 r0
+    spd r0 r_col
+
+    ldi r0 1
+    lod r0 r0
+    spd r0 g_col
+
+    ldi r0 2
+    lod r0 r0
+    spd r0 b_col
+
+    spd set_px
+
+# get the cursor position
+
+    pti 9 r0
+    spd r0 x_coord
+
+    pti 10 r0
+    spd r0 y_coord
+
+# test if theyre changing color
+
+    pti 1 r3
+    ldi r4 0b00000010
+    and r3 r4 r3
+    xor r3 r4 r3
+    jiz r3 q_pressed
+q_done:
+
+    pti 3 r3
+    # ldi r4 0b00000010
+    and r3 r4 r3
+    xor r3 r4 r3
+    jiz r3 f_pressed
+f_done:
+
+    pti 4 r3
+    # ldi r4 0b00000010
+    and r3 r4 r3
+    xor r3 r4 r3
+    jiz r3 z_pressed
+z_done:
+
+    pti 1 r3
+    ldi r4 0b00000001
+    and r3 r4 r3
+    xor r3 r4 r3
+    jiz r3 w_pressed
+w_done:
+
+    pti 3 r3
+    # ldi r4 0b00000001
+    and r3 r4 r3
+    xor r3 r4 r3
+    jiz r3 g_pressed
+g_done:
+
+    pti 4 r3
+    # ldi r4 0b00000001
+    and r3 r4 r3
+    xor r3 r4 r3
+    jiz r3 x_pressed
+x_done:
+
+    pti 2 r3
+    ldi r4 0b10000000
+    and r3 r4 r3
+    xor r3 r4 r3
+    jiz r3 e_pressed
+e_done:
+
+    pti 4 r3
+    # ldi r4 0b10000000
+    and r3 r4 r3
+    xor r3 r4 r3
+    jiz r3 h_pressed
+h_done:
+
+    pti 5 r3
+    # ldi r4 0b10000000
+    and r3 r4 r3
+    xor r3 r4 r3
+    jiz r3 c_pressed
+c_done:
+
+    pti 2 r3
+    ldi r4 0b01000000
+    and r3 r4 r3
+    xor r3 r4 r3
+    jiz r3 r_pressed
+r_done:
+
+    pti 5 r3
+    # ldi r4 0b01000000
+    and r3 r4 r3
+    xor r3 r4 r3
+    jiz r3 v_pressed
+v_done:
+
+    pti 2 r3
+    ldi r4 0b00100000
+    and r3 r4 r3
+    xor r3 r4 r3
+    jiz r3 t_pressed
+t_done:
+
+    pti 5 r3
+    # ldi r4 0b00100000
+    and r3 r4 r3
+    xor r3 r4 r3
+    jiz r3 b_pressed
+b_done:
+
+    pti 2 r3
+    ldi r4 0b00010000
+    and r3 r4 r3
+    xor r3 r4 r3
+    jiz r3 y_pressed
+y_done:
+
+    pti 3 r3
+    # ldi r4 0b00010000
+    and r3 r4 r3
+    xor r3 r4 r3
+    jiz r3 a_pressed
+a_done:
+
+    pti 5 r3
+    # ldi r4 0b00010000
+    and r3 r4 r3
+    xor r3 r4 r3
+    jiz r3 n_pressed
+n_done:
+
+    pti 3 r3
+    ldi r4 0b00001000
+    and r3 r4 r3
+    xor r3 r4 r3
+    jiz r3 s_pressed
+s_done:
+
+    pti 3 r3
+    ldi r4 0b00000100
+    and r3 r4 r3
+    xor r3 r4 r3
+    jiz r3 d_pressed
+d_done:
+
+
+
+# check if theyre drawing
+
+    pti 8 r3
+    ldi r4 0b10000000
+    and r3 r4 r3
+    xor r3 r4 r3
+    jiz r3 left_click
+left_click_done:
+
+    pti 8 r3
+    ldi r4 0b00100000
+    and r3 r4 r3
+    xor r3 r4 r3
+    jiz r3 right_click
+right_click_done:
+
+    spd r1 r_col 1 # store r in mem adr 0
+    ldi r2 0
+    str r1 r2
+
+    spd r1 g_col 1 # store g in mem adr 1
+    ldi r2 1
+    str r1 r2
+
+    spd r1 b_col 1 # store b in mem adr 2
+    ldi r2 2
+    str r1 r2
+
+# display cursor
+
+    ldi r3 3
+    lod r3 r3
+    spd r3 r_col
+    ldi r3 4
+    lod r3 r3
+    spd r3 g_col
+    ldi r3 5
+    lod r3 r3
+    spd r3 b_col
+
+    spd set_px
+
+    spd push_buffer # display cursor
+
+    jmp loop
+
+# 0, 51, 102, 153, 204, 255 < 6 colors < Chose this one
+# 0, 85, 170, 255 < 4 colors
+
+q_pressed:
+    ldi r3 0
+    ldi r4 3
+    str r3 r4
+    jmp q_done
+    
+w_pressed:
+    ldi r3 51
+    ldi r4 3
+    str r3 r4
+    jmp w_done
+
+e_pressed:
+    ldi r3 102
+    ldi r4 3
+    str r3 r4
+    jmp e_done
+    
+r_pressed:
+    ldi r3 153
+    ldi r4 3
+    str r3 r4
+    jmp r_done
+
+t_pressed:
+    ldi r3 204
+    ldi r4 3
+    str r3 r4
+    jmp t_done
+
+y_pressed:
+    ldi r3 255
+    ldi r4 3
+    str r3 r4
+    jmp y_done
+
+a_pressed:
+    ldi r3 0
+    ldi r4 4
+    str r3 r4
+    jmp a_done
+    
+s_pressed:
+    ldi r3 51
+    ldi r4 4
+    str r3 r4
+    jmp s_done
+
+d_pressed:
+    ldi r3 102
+    ldi r4 4
+    str r3 r4
+    jmp d_done
+
+f_pressed:
+    ldi r3 153
+    ldi r4 4
+    str r3 r4
+    jmp f_done
+
+g_pressed:
+    ldi r3 204
+    ldi r4 4
+    str r3 r4
+    jmp g_done
+
+h_pressed:
+    ldi r3 255
+    ldi r4 4
+    str r3 r4
+    jmp h_done
+
+z_pressed:
+    ldi r3 0
+    ldi r4 5
+    str r3 r4
+    jmp z_done
+    
+x_pressed:
+    ldi r3 51
+    ldi r4 5
+    str r3 r4
+    jmp x_done
+
+c_pressed:
+    ldi r3 102
+    ldi r4 5
+    str r3 r4
+    jmp c_done
+
+v_pressed:
+    ldi r3 153
+    ldi r4 5
+    str r3 r4
+    jmp v_done
+
+b_pressed:
+    ldi r3 204
+    ldi r4 5
+    str r3 r4
+    jmp b_done
+
+n_pressed:
+    ldi r3 255
+    ldi r4 5
+    str r3 r4
+    jmp n_done
+
+
+left_click:
+    ldi r3 3
+    lod r3 r3
+    spd r3 r_col
+    ldi r3 4
+    lod r3 r3
+    spd r3 g_col
+    ldi r3 5
+    lod r3 r3
+    spd r3 b_col
+
+    spd set_px
+    jmp left_click_done
+
+
+
+right_click:
+    ldi r3 0
+    spd r3 r_col
+    spd r3 g_col
+    spd r3 b_col
+
+    spd set_px
+    jmp right_click_done

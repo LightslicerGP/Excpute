@@ -1,0 +1,68 @@
+r0 = 0
+r1 = 1
+r2 = 2
+r3 = 3
+r4 = 4
+rSP = 5
+rFlags = 6
+rPC = 7
+
+r_col = 0
+g_col = 1
+b_col = 2
+x_coord = 3
+y_coord = 4
+set_px = 5
+fill_display = 6
+push_buffer = 7
+
+on = 255
+off = 0
+
+loop:
+    ldi r0 0
+    spd r0 r_col
+    ldi r0 128
+    spd r0 g_col
+    ldi r0 on
+    spd r0 b_col
+    
+    spd r0 fill_display
+    spd push_buffer
+
+
+
+
+
+
+
+    ldi r0 on
+    spd r0 r_col
+    spd r0 g_col
+    spd r0 b_col
+
+    ldi r0 0
+    spd r0 x_coord
+    ldi r0 255
+    spd r0 y_coord
+    spd r0 set_px
+    spd push_buffer
+
+    ldi r0 1
+    spd r0 x_coord
+    ldi r0 254
+    spd r0 y_coord
+    spd r0 set_px
+    spd push_buffer
+
+    ldi r0 1
+    spd r0 x_coord
+    ldi r0 254
+    spd r0 y_coord
+    ldi r0 0
+    spd r0 r_col
+    spd r0 g_col
+    spd r0 b_col
+    spd set_px
+    spd push_buffer
+    jmp loop

@@ -1,0 +1,175 @@
+r0 = 0
+r1 = 1
+r2 = 2
+r3 = 3
+r4 = 4
+r5 = 5
+r6 = 6
+r7 = 7
+
+r_x = 0
+r_y = 1
+r_error = 2
+r_e2_lsb = 3
+r_e2_msb = 4
+
+rSP = 5
+rFlags = 6
+rPC = 7
+
+r_col = 0
+g_col = 1
+b_col = 2
+x_coord = 3
+y_coord = 4
+set_px = 5
+fill_display = 6
+push_buffer = 7
+
+on = 255
+off = 0
+
+yes = 1
+no = 0
+
+#x0 = 0
+#y0 = 15
+#x1 = 12
+#y1 = 17
+
+x0 = 0
+y0 = 0
+x1 = 12
+y1 = 200
+
+init:
+
+loop:
+    cal bresenham_init
+    # spd push_buffer
+    jmp loop
+
+bresenham_init:
+    ldi r1 on
+    spd r1 r_col
+    spd r1 g_col
+    spd r1 b_col
+
+    ldi r_x x0
+    ldi r_y y0
+
+    ldi r2 x1               # figuring out dx
+    sub r2 r_x r2           # x1 - x0
+    ldi r3 0b10000000       # filter for negative bit
+    and r2 r3 r2            # store filtered num in r3
+    xor r2 r3 r2            # compare
+    jiz r2 abs_x            # jump if negative
+    ldi r2 x1               # if not, keep as is
+    sub r2 r_x r2           # get x1-x0
+abs_x_done:                 # r2 has dx
+    ldi r3 0                # memory address that will store dx
+    str r2 r3               # store dx (r2) in memory address (r3, 0)
+
+    ldi r2 y1               # figuring out dy
+    sub r2 r_y r2           # y1 - y0
+    ldi r3 0b10000000       # filter for negative bit
+    and r2 r3 r2            # store filtered num in r3
+    xor r2 r3 r2            # compare
+    jiz r2 abs_y            # jump if negative
+    ldi r2 y1               # if not, keep as is
+    sub r2 r_y r2           # get y1-y0
+abs_y_done:                 # r2 has dy
+    ldi r3 1                # memory address that will store dy
+    str r2 r3               # store dy (r2) in memory address (r3, 1)
+
+    # mem adr 0 has dx, mem adr 1 has dy
+
+    ldi r2 x1               # we wanna do (x0 < x1) ? 1 : -1 for sx
+    cmp r_x r2              # compare A (r_x, x0) and B (r2, x1)
+    ldi r3 0b00001000       # filter for negative flag
+    and r3 rFlags rFlags    # check negative flag
+    xor r3 rFlags r3        # store compare result in r3
+    jiz r3 set_sx           # set sx to 1
+    ldi r2 -1               # set sx -1
+set_sx_done:                # r2 has sx
+    ldi r3 2                # memory address that will store sx
+    str r2 r3               # store sx (r2) in memory address (r3, 2)
+
+    ldi r2 y1               # we wanna do (y0 < y1) ? 1 : -1 for sy
+    cmp r_y r2              # compare A (r_y, y0) and B (r2, y1)
+    ldi r3 0b00001000       # check negative
+    and r3 rFlags rFlags
+    xor r3 rFlags r3        # store compare result in r3
+    jiz r3 set_sy           # set sy to 1
+    ldi r2 -1               # set sy -1
+set_sy_done:                # r2 has sy
+    ldi r3 3                # memory address that will store sy
+    str r2 r3               # store sy (r2) in memory address (r3, 3)
+
+    # mem adr 2 has sx, mem adr 3 has sy
+
+    ldi r2 0          # calculating error
+    lod r2 r2         # r2 has dx
+    ldi r3 1
+    lod r3 r3         # r3 has dy
+
+    sub r2 r3 r_error # store err in reg 2
+
+bresenham:
+    spd r_x x_coord
+    spd r_y y_coord
+    spd set_px
+    spd push_buffer
+
+    ldi r3 x1
+    xor r0 r3 r3
+    jiz r3 exit_bresenham_x # x0==x1 passed, check y
+exit_fail:
+    add r_error r_error r_e2_lsb yes no # stores 2 * err in r_e2_lsb (r3)
+
+
+
+
+
+
+
+
+
+
+
+
+
+abs_x:                # 2s compliment
+    ldi r2 x1
+    sub r2 r_x r2     # get x1-x0
+    inv r2            # invert
+    inc r2            # add 1
+    jmp abs_x_done    # 80: r2 has |x1 - x0|
+
+abs_y:                # 2s compliment
+    ldi r2 y1
+    sub r2 r_y r2     # get y1-y0
+    inv r2            # invert
+    inc r2            # add 1
+    jmp abs_y_done    # r2 has |y1 - y0|
+
+
+set_sx:
+    ldi r2 1
+    jmp set_sx_done
+
+set_sy:
+    ldi r2 1
+    jmp set_sy_done
+
+
+
+exit_bresenham_x:
+    ldi r3 y1
+    xor r1 r3 r3
+    jiz r3 exit_bresenham # y0==y1 passed, exit
+    jmp exit_fail # didnt pass, go back
+    
+
+exit_bresenham:
+    rtn

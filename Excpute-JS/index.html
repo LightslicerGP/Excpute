@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Virtual Pixel Display</title>
+    <style>
+      body {
+        width: 100vw;
+        height: 100vh;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        background-color: black;
+      }
+      canvas {
+        border: 2px solid blue;
+        /* border-radius: 8px; */
+        display: block;
+        margin: auto;
+        aspect-ratio: 1 / 1;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="display"></canvas>
+
+    <script src="displaytemp.js"></script>
+  </body>
+</html>
