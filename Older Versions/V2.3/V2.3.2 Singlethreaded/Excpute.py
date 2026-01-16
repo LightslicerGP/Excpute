@@ -7,7 +7,7 @@ import Port
 import RAM
 from Display import init_display, update_display
 import Assembler  # TEMP ASSEMBLY
-
+import Keyboard  # This imports the IO.py file, i dont want to but oh well 10/31/24
 
 registers = [0] * 8
 
@@ -87,20 +87,21 @@ def hlt_op():
 def add_op(regA, regB, regDest, SetFlag, CarryFlag):
     if debug:
         print(f"{instruction_address}: Addition")
-    A = reg_read(regA, False)
-    B = reg_read(regB, False)
+    A = reg_read(regA, True)
+    B = reg_read(regB, True)
 
     if CarryFlag == 1:
         result = A + B + flag_read("carry")
     else:
         result = A + B
 
-    if result > 255:
+    if result > 127:
+        result = result - 256
+    elif result < -128:
         if SetFlag == 1:
             flag_set("carry", 1)
-        result -= 256
-
-    reg_write(regDest, result, False)
+        result = result + 256
+    reg_write(regDest, result)
     next_instruction()
 
 
@@ -113,11 +114,11 @@ def sub_op(regA, regB, regDest, SetFlag):
     result = A - B
 
     if result > 127:
-        result -= 256
+        result = result - 256
     elif result < -128:
         if SetFlag == 1:
             flag_set("carry", 1)
-        result += 256
+        result = result + 256
 
     reg_write(regDest, result)
     next_instruction()
@@ -243,13 +244,11 @@ def lsh_op(regA, regDest, SetFlag):
     A = reg_read(regA, False)
 
     result = A << 1
-    # print("     A:", bin(A), A)
-    # print("Result:", bin(result), result)
 
     if result > 255:
         if SetFlag == 1:
             flag_set("carry", 1)
-        result -= 256
+        result = result - 256
 
     reg_write(regDest, result, False)
     next_instruction()
@@ -279,34 +278,25 @@ def lbs_op(regA, regDest):
     next_instruction()
 
 
-def cmp_op(regA, regB, signed):
+def cmp_op(regA, regB):
     if debug:
         print(f"{instruction_address}: Compare")
-    print("SIGNED VALUE", signed) if debug else None
-    if signed == 1:
-        A = reg_read(regA, True)  # 10
-        B = reg_read(regB, True)  # 1
-    elif signed == 0:
-        A = reg_read(regA, False)
-        B = reg_read(regB, False)
+    A = reg_read(regA, False)
+    B = reg_read(regB, False)
 
-    result = B - A  # 1 - 10 = -9
-    print(f"{A} ? {B} = {result}") if debug else None
+    result = B - A
 
-    if result == 0:  # A == B, B - A = Zero
-        print("ZERO FLAG") if debug else None
+    if result == 0:
         flag_set("zero", 1)
     else:
         flag_set("zero", 0)
 
-    if result > 0:  # A < B, B - A = Positive
-        print("NEG FLAG") if debug else None
+    if result < 0:
         flag_set("negative", 1)
     else:
         flag_set("negative", 0)
 
-    if result < 0:  # A > B, B - A = Negative
-        print("CARRY FLAG") if debug else None
+    if B < A:
         flag_set("carry", 1)
     else:
         flag_set("carry", 0)
@@ -418,46 +408,17 @@ def jiz_op(regA, address):
         next_instruction()
 
 
-def spd_op(regA, property, mode):
+def spd_op(regA, property):
     if debug:
         print(f"{instruction_address}: Set pixel data")
     A = reg_read(regA, False)
 
-    # print(f"    property: {property}, mode: {mode}")
-
-    if mode == 0:
-        if property < 5:  # r, g, b, x, y
-            ram_address = property + 250  # 0 -> 250, 4 -> 254
-            RAM.write(ram_address, A, False)
-        elif property >= 5:  # set, fill, update
-            ram_data = property - 4  # 5 -> 1, 7 -> 3
-            RAM.write(255, ram_data, False)
-            update_display(renderer, scale)
-
-    elif mode == 1:
-        x_coordinate = RAM.read(253, False) * scale
-        y_coordinate = (255 - RAM.read(254, False)) * scale
-        color = pygame.display.get_surface().get_at((x_coordinate, y_coordinate))
-
-        # print(f"X: {RAM.read(252, False)}")
-        # print(f"Y: {RAM.read(253, False)}")
-        # print(f"color: {color[0:3]}")
-
-        # print(mode, property)
-
-        if property == 0:  # red value
-            reg_write(regA, color[0], False)
-        if property == 1:  # green value
-            reg_write(regA, color[1], False)
-        if property == 2:  # blue value
-            reg_write(regA, color[2], False)
-
-        if (property == 3) or (property == 4):  # x or y coordinate
-            ram_address = property + 250  # 3 -> 253, 4 -> 254
-            RAM.write(ram_address, A, False)
-
-        elif property >= 5:  # set, fill, update
-            print("mode is set/fill/push, and reading from screen?")
+    if property < 5:  # r, g, b, x, y
+        ram_address = property + 249  # 0 -> 249, 4 -> 253
+        RAM.write(ram_address, A, False)
+    elif property >= 5:  # set, reset, fill
+        ram_data = property - 4  # 5 -> 1, 7 -> 3
+        RAM.write(254, ram_data, False)
 
     next_instruction()
 
@@ -481,7 +442,7 @@ instructions = {
     "LSH": lambda ra, rd, sf=1: lsh_op(ra, rd, sf),
     "RBS": lambda ra, rd: rbs_op(ra, rd),
     "LBS": lambda ra, rd: lbs_op(ra, rd),
-    "CMP": lambda ra, rb, sn=0: cmp_op(ra, rb, sn),
+    "CMP": lambda ra, rb: cmp_op(ra, rb),
     "PSH": lambda ra: psh_op(ra),
     "POP": lambda rd: pop_op(rd),
     "CAL": lambda ad: cal_op(ad),
@@ -494,7 +455,7 @@ instructions = {
     "PTO": lambda ra, ad: pto_op(ra, ad),
     "JMP": lambda ad: jmp_op(ad),
     "JIZ": lambda ra, ad: jiz_op(ra, ad),
-    "SPD": lambda ra, pr, md=0: spd_op(ra, pr, md),
+    "SPD": lambda ra, pr: spd_op(ra, pr),
 }
 
 
@@ -537,35 +498,22 @@ renderer = init_display(scale)
 
 program = get_instructions("Instructions Compiled")
 reg_write(7, 0, False)  # set instruction address
-reg_write(5, 249, False)  # set stack address
+reg_write(5, 248, False)  # set stack address
 
-print(program) if debug else None
+if debug:
+    print(program)
 
 running = True
-
-# IPS Viewer (227961 IPS = 227.961 kHz)
-# import time
-# start_time = time.time()
-# instruction_count = 0
 
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-        Port.hardware(event, scale)  # for keuybaorrd stfufusuhfaahhfsiuiuh 10/31/24
-    # pygame.display.flip()
+        Port.hardware(event)  # for keuybaorrd stfufusuhfaahhfsiuiuh 10/31/24
+    pygame.display.flip()
 
     update_cpu(program)
 
-    # update_display(renderer, scale)
-
-    # IPS Viewer
-    instruction_count += 1
-    current_time = time.time()
-    if current_time - start_time >= 1.0:
-        print(f"Instructions Per Second (IPS): {instruction_count}")
-
-        start_time = current_time
-        instruction_count = 0
+    update_display(renderer, scale)
 
 pygame.quit()

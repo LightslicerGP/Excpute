@@ -6,34 +6,49 @@ V2.2 is meant to fix things and have a clean start, NOT using a string of binary
 
 V2.3 is v2.2 but rewritten to run faster, focusing on speed before features, so at the start there wont be any ram or register .bin files, but instead arrays created by the code itself. BUT this will still use the same ISA as v2.2
 
-V2.4 is v2.3 but optimized even more, and also slightly changing the SPD Instruction to be able to push a buffer (so you only push when you need to, and not every time you set or fill the screen), and read from the display (not the buffer, couldnt figure that out), also got rid of number display as it would be difficult to implement anyway. Completely new ISA
-
 [Documentation](https://docs.google.com/spreadsheets/d/1jg-Fbts24ksjgkxZRkGntg0EJQws3mo0vg7sR-p3xGc/edit?usp=sharing)
 
 ## Specs
 
 ### Cpu
 
-- 8 bit registers/memory
+- 8 bit registers
 - 8 registers
 - support for up to 256 bytes of ram
-- stack starts at byte 249 and goes down the more that is pushed
+- built in vram for r, g, b, x, and y values in 8 bits
+- stack starts at byte 248 and goes down the more that is pushed
 
 ### Display
 
 - up to 256x256 pixels (or more with some engineering)
 - support for full 8 bit rgb
-- uses memory addresses 250 to 255: Red, Green, Blue, X, Y, Operation
+- uses ports 1-6
+
+## How some systems will work
+
+### rendering a charecter
+
+1. Read the right register/RAM that has the charecter
+2. go to that charecter id's slot in storage
+3. ???
+4. profit
 
 ### IO propriatary slots
 
-#### Keyboard
+- Display
 
-- uses ports 0-7
-- keyboard charecter set, follows Keyboard Oriented Charecter Set (K. O. C. S.) system
+1. red color push
+2. green color push
+3. blue color push
+4. x coordinate push
+5. y coordinate push
+6. Write pixel data push (b0 - Plot pixel, b1 - Delete pixel, b2 - Fill screen, b3 - Clear screen)
 
-#### Mouse
+- Storage
 
-- uses ports 8-10
-- port 8 is for mouse buttons
-- ports 9 and 10 are for x and y coordinate of the mouse
+7. data storage register location push (push data with port 8)
+8. data push (with port 7)
+9. data storage register location push (pull data with port 10)
+10. data pull (with port 9)
+11. mouse x coordinate push
+12. mouse y coordinate push

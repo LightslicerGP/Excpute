@@ -1,11 +1,5 @@
 Ports = [0] * 256
 
-import Keyboard
-import Mouse
-
-def hardware(event, scale):
-    Keyboard.handle_keyboard_event(event)
-    Mouse.handle_mouse_event(event, scale)
 
 def read(id: int, signed: bool = True):
     value = Ports[id]

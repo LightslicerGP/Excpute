@@ -1,6 +1,18 @@
 import Port
 import pygame
 
+# Mapping keys to their respective bitmasks
+# key_bitmasks = {
+#     pygame.K_w: 0b10000000,
+#     pygame.K_a: 0b01000000,
+#     pygame.K_s: 0b00100000,
+#     pygame.K_d: 0b00010000,
+#     pygame.K_UP: 0b00001000,
+#     pygame.K_LEFT: 0b00000100,
+#     pygame.K_DOWN: 0b00000010,
+#     pygame.K_RIGHT: 0b00000001,
+# }
+
 key_bitmasks = {
     pygame.K_SPACE: [0, 0b10000000],
     pygame.K_BACKQUOTE: [0, 0b01000000],
@@ -62,22 +74,21 @@ key_bitmasks = {
     pygame.K_CAPSLOCK: [7, 0b10000000],
     pygame.K_LCTRL: [7, 0b01000000],  # Combined Control
     pygame.K_RCTRL: [7, 0b01000000],  # Combined Control
-    pygame.K_LALT: [7, 0b00100000],  # Combined Alt
-    pygame.K_RALT: [7, 0b00100000],  # Combined Alt
-    # pygame.K_0: [7, 0b00010000],  # FN key DOESNT EXIST SHIADHODSAHODSIUDSAOBDSBAOBUOBIUOBUSAOBUDSABUODSABIUDSAOBIUDSADSADSOBAIUSODBAUODBIUOAOBUIDOBUSAIBDSAOBIUBUDSABUOIDSAIUDSAOBIUDSABIDSOBIUDSAOBIUIUDSADSABDSUBDUOSDBIUSBIUOBIUAOBAIUUSABAUDSIOSBIUBUBUODSBAIUBIUUDBIAOBIUDSAUDuodsbiuodsbai
-    pygame.K_ESCAPE: [7, 0b00010000],
-    pygame.K_PRINTSCREEN: [7, 0b00001000],
-    pygame.K_INSERT: [7, 0b00000100],
-    pygame.K_DELETE: [7, 0b00000010],
-    # one more spot for fun OIHHDSAUOIHOSBIUSBAHHOIOBIUSODHIDSOIUDSADAHOBIUDSA 11/12/24
+    pygame.K_LALT: [7, 0b00010000],  # Combined Alt
+    pygame.K_RALT: [7, 0b00010000],  # Combined Alt
+    pygame.K_ESCAPE: [7, 0b00001000],
+    pygame.K_PRINTSCREEN: [8, 0b00000100],
+    pygame.K_INSERT: [8, 0b00000010],
+    pygame.K_DELETE: [8, 0b00000001],
 }
 
 
-def handle_keyboard_event(event):
+def handle_key_event(event):
     if event.type == pygame.KEYDOWN:
         if event.key in key_bitmasks:
             index, bitmask = key_bitmasks[event.key]
             Port.Ports[index] ^= bitmask  # Use the index and bitmask
+
     elif event.type == pygame.KEYUP:
         if event.key in key_bitmasks:
             index, bitmask = key_bitmasks[event.key]

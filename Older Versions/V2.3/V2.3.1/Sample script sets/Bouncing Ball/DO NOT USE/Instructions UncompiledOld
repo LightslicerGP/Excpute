@@ -1,0 +1,111 @@
+xpos = 0
+ypos = 1
+xvel = 2
+yvel = 3
+r4 = 4
+rSP = 5
+rFlags = 6
+rPC = 7
+
+r_col = 0
+g_col = 1
+b_col = 2
+x_prop = 3
+y_prop = 4
+setpixel = 5
+
+on = -1
+off = 0
+
+init:
+    ldi xpos 1 # inital x pos
+    ldi ypos 10 # initial y pos
+    ldi xvel 1 # initial x vel
+    ldi yvel 1 # initial y vel
+    
+    ldi r4 on # setting color
+    spd r4 r_col
+    spd r4 g_col
+    spd r4 b_col
+    cal display
+
+loop:
+    cal update
+    cal display
+    jmp loop
+update:
+# x velocity
+    ldi r4 1 # checking for right movement
+    xor r4 xvel r4
+    jiz r4 increase_x
+breakpointE:
+    ldi r4 -1 # checking for left movement
+    xor r4 xvel r4
+    jiz r4 decrease_x
+breakpointF:
+# y velocity
+    ldi r4 1 # checking for up movement
+    xor r4 yvel r4
+    jiz r4 increase_y
+breakpointG:
+    ldi r4 -1 # checking for down movement
+    xor r4 yvel r4
+    jiz r4 decrease_y
+breakpointH:
+    rtn
+    ldi r4 -1 # for right wall collision
+    xor r4 xpos r4
+    jiz r4 right_bounce
+breakpointA:
+    ldi r4 0 # for left wall
+    xor r4 xpos r4
+    jiz r4 left_bounce
+breakpointB:
+    ldi r4 -1 # for top wall
+    xor r4 ypos r4
+    jiz r4 top_bounce
+breakpointC:
+    ldi r4 1 # for bottom wall
+    xor r4 ypos r4
+    jiz r4 bottom_bounce
+breakpointD:
+    rtn
+
+right_bounce:
+    ldi xvel -1
+    jmp breakpointA
+
+left_bounce:
+    ldi xvel 1
+    jmp breakpointB
+
+top_bounce:
+    ldi yvel -1
+    jmp breakpointC
+
+bottom_bounce:
+    ldi yvel 1
+    jmp breakpointD
+
+increase_x:
+    inc xpos xpos
+    jmp breakpointE
+
+decrease_x:
+    dec xpos xpos
+    jmp breakpointF
+
+increase_y:
+    inc ypos ypos
+    jmp breakpointG
+
+decrease_y:
+    dec ypos ypos
+    jmp breakpointH
+
+
+display:
+    spd xpos x_prop
+    spd ypos y_prop
+    spd 0 setpixel
+    rtn

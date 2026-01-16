@@ -1,0 +1,84 @@
+r0 = 0
+r1 = 1
+r2 = 2
+r3 = 3
+r4 = 4
+r5 = 5
+r6 = 6
+r7 = 7
+
+rSP = 5
+rFlags = 6
+rPC = 7
+
+r_col = 0
+g_col = 1
+b_col = 2
+x_coord = 3
+y_coord = 4
+set_px = 5
+fill_display = 6
+push_buffer = 7
+
+on = 255
+off = 0
+
+yes = 1
+no = 0
+
+init:
+
+loop:
+
+    pti 8 r2
+    ldi r3 0b10000000
+    and r2 r3 r2
+    xor r2 r3 r2
+    jiz r2 lmb_down
+lmb_up:
+    ldi r0 0
+    spd r0 r_col
+    spd r0 g_col
+    spd r0 b_col
+
+    spd fill_display
+    spd push_buffer
+
+    jmp loop
+
+lmb_down:
+    pti 9 r0
+    pti 10 r1
+
+    ldi r2 255
+    spd r2 r_col
+    spd r2 g_col
+    spd r2 b_col
+    
+lmb_down_loop:
+    pti 9 r2
+    pti 10 r3
+    
+    ldi r6 1
+    str r4 r6
+column:
+    ldi r4 1
+    lod r4 r4
+    spd r4 y_coord
+    ldi r6 1
+    str r4 r6
+
+row:
+    spd r4 x_coord
+
+
+    jiz r6 row
+
+    jmp column
+
+    pti 8 r4
+    ldi r6 0b10000000
+    and r4 r6 r4
+    xor r4 r6 r4
+    jiz r4 lmb_down_loop # they havnt let go of lmb
+    jmp lmb_up # the user let go of lmb

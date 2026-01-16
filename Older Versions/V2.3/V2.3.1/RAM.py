@@ -1,14 +1,8 @@
-Ports = [0] * 256
+RAM = [0] * 256
 
-import Keyboard
-import Mouse
-
-def hardware(event, scale):
-    Keyboard.handle_keyboard_event(event)
-    Mouse.handle_mouse_event(event, scale)
 
 def read(id: int, signed: bool = True):
-    value = Ports[id]
+    value = RAM[id]
     if not signed:  # 0 to 255
         return value
         # -128 to 127
@@ -22,10 +16,10 @@ def write(id: int, new_data: int, signed: bool = True):
     if (
         signed and -128 <= new_data < 0
     ):  # converts the negative number to unsigned number
-        Ports[id] = 256 + new_data
+        RAM[id] = 256 + new_data
     elif (not signed and 0 <= new_data <= 255) or (
         signed and 0 <= new_data <= 127
     ):  # sb doesnt matter, write number
-        Ports[id] = new_data
+        RAM[id] = new_data
     else:
-        raise OverflowError(f"Cannot write {new_data} to port {id}")
+        raise OverflowError(f"Cannot write {new_data} to ram register {id}")

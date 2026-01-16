@@ -1,0 +1,120 @@
+xpos = 0
+ypos = 1
+xvel = 2
+yvel = 3
+r4 = 4
+rSP = 5
+rFlags = 6
+rPC = 7
+
+maxWidth = 255
+maxHeight = 143
+
+r_col = 0
+g_col = 1
+b_col = 2
+x_coord = 3
+y_coord = 4
+set_px = 5
+fill_display = 6
+push_buffer = 7
+
+on = 255
+off = 0
+
+init:
+    ldi xpos 1 # inital x pos
+    ldi ypos 10 # initial y pos
+    ldi xvel 1 # initial x vel
+    ldi yvel 1 # initial y vel
+
+loop:
+    # first removing the ball
+    ldi r4 off
+    spd r4 r_col
+    spd r4 g_col
+    spd r4 b_col
+    spd set_px
+
+    # then moving the ball
+    ldi r4 1
+    xor r4 xvel r4
+    jiz r4 increase_x
+increased_x:
+    ldi r4 255
+    xor r4 xvel r4
+    jiz r4 decrease_x
+decreased_x:
+    ldi r4 1
+    xor r4 yvel r4
+    jiz r4 increase_y
+increased_y:
+    ldi r4 255
+    xor r4 yvel r4
+    jiz r4 decrease_y
+
+    # next flipping velocity if needed
+decreased_y: 
+    ldi r4 maxWidth
+    xor r4 xpos r4
+    jiz r4 right_bounce
+bounced_right:
+    ldi r4 0
+    xor r4 xpos r4
+    jiz r4 left_bounce
+bounced_left:
+    ldi r4 maxHeight
+    xor r4 ypos r4
+    jiz r4 top_bounce
+bounced_top:
+    ldi r4 0
+    xor r4 ypos r4
+    jiz r4 bottom_bounce
+bounced_bottom:
+
+    # then placing the ball, and update display
+    spd xpos x_coord
+    spd ypos y_coord
+
+    ldi r4 on
+    spd r4 r_col
+    spd r4 g_col
+    spd r4 b_col
+    spd set_px
+
+    spd push_buffer
+    jmp loop
+
+
+
+increase_x:
+    inc xpos
+    jmp increased_x
+
+decrease_x:
+    dec xpos
+    jmp decreased_x
+
+increase_y:
+    inc ypos
+    jmp increased_y
+
+decrease_y:
+    dec ypos
+    jmp decreased_y
+
+right_bounce:
+    ldi xvel -1
+    jmp bounced_right
+
+left_bounce:
+    ldi xvel 1
+    jmp bounced_left
+
+top_bounce:
+    ldi yvel -1
+    jmp bounced_top
+
+bottom_bounce:
+    ldi yvel 1
+    jmp bounced_bottom
